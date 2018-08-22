@@ -1,0 +1,3 @@
+moment;pid;father_pid;root_pid;system_pid;project;job;job_repository_id;job_version;context;origin;message_type;message;duration
+2018-07-26 18:16:47;TK2qyT;9WpofD;9WpofD;6824;TALEND_LATEST_06252018;INFORMATICA_AMM_REVERSE_WKF;_bjvqwIjsEei6zvL7M7qDCA;4.0;AMM61JOHN;;begin;;
+2018-07-26 18:17:11;TK2qyT;9WpofD;9WpofD;6824;TALEND_LATEST_06252018;INFORMATICA_AMM_REVERSE_WKF;_bjvqwIjsEei6zvL7M7qDCA;4.0;AMM61JOHN;;end;success;24693
