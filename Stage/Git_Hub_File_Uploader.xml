@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cats version="3.0" xmlns="http://www.analytixds.com/amm/xml/cfx/v1/cats">
+  <Cat Id="50">
+    <Name xmlns="">Git_Hub_File_Uploader</Name>
+    <Description xmlns="">With delete Option muliple files</Description>
+    <ImageContent xmlns=""/>
+    <StockImage xmlns="">defaultCatImage.png</StockImage>
+    <CategoryName xmlns="">Git Hub File Uploader</CategoryName>
+    <ScriptingLanguage xmlns="">Javascript</ScriptingLanguage>
+    <ScriptContent xmlns="">importPackage(java.io);
+importPackage(org.eclipse.jgit.transport);
+importPackage(org.apache.commons.io);
+importPackage(org.eclipse.jgit.api);
+importPackage(java.lang);
+importPackage(org.eclipse.jgit.internal.storage.file);
+importPackage(org.json);
+
+
+/** 
+ * Function execute is the starting point 
+ * Kick Start: 
+ * Import Package using: importPackage 
+ */ 
+
+var debug = new StringBuffer();
+function execute() {
+    var bitBucketURL = vGItHubUrl;
+    var userName = vUserName;
+    var password = vPassword;
+    var repoFolderName = vFolderName;
+    var uploadFilePath;
+    var localFileDirPath;
+    var fileName;
+    var filePath;
+    var file ;
+    var fileContent ;
+    var localPath ;
+    var repo_i ;
+    var branch = vBranch;
+    var remote = vRemote;
+
+    var jsonarray = new JSONArray(vUpload);
+    for (var k1 = 0; k1 &lt; jsonarray.length();
+         k1++) {
+        var jsonobject = jsonarray.getJSONObject(k1);
+        localFileDirPath = jsonobject.getString("serverName");
+        filePath = localFileDirPath;
+        file = new File(filePath);
+        fileName = file.getName();
+        fileContent = FileUtils.readFileToString(file);
+        localFileDirPath = localFileDirPath.substring(0,localFileDirPath.lastIndexOf("/")+1);
+        localFileDirPath = localFileDirPath+repoFolderName;
+        localPath = new File(localFileDirPath);
+
+        if(k1===0){
+            
+            repo_i = 1;
+        }
+        UploadFileintoRepo().uploadFileIntoGitHub(bitBucketURL, userName, password, localPath, repoFolderName, k1, fileName, fileContent, branch,remote);
+    }
+    return debug.toString();
+
+}
+
+function uploadFileIntoGitHub(bitBucketURL, userName,
+                               password, localFileDirPath, folderName, repo_i,  fileName,  fileContent, branch, remote) {
+    try{
+
+        var git = null;
+        if (repo_i === 0) {
+            git = Git.cloneRepository().setURI(bitBucketURL).setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, password))
+            .setDirectory(localFileDirPath)
+            .call();
+        }
+        else {
+            git = Git.open(localFileDirPath);
+        }
+
+        var repository = git.getRepository();
+        var theDir = new File(repository.getDirectory().getParent(), folderName);
+        if (!theDir.exists()) {
+            theDir.mkdir();
+        }
+        var myfile = new File(theDir, fileName);
+        var writer = new FileWriter(myfile);
+        writer.write(fileContent);
+        var spec = new RefSpec(branch + ":" + branch);
+        writer.close();
+        git.add().addFilepattern(".").call();
+        git.commit().setMessage("Commit all changes including additions to " + fileName).call();
+        git.commit().setAll(true).setMessage("Commit changes to all files").call();
+        var result = git.commit().setMessage("initial commit to " + fileName).call();
+        git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, password)).setRemote(remote).setRefSpecs(spec).call();
+        System.out.println("\"" + fileName + "\" File Has been Pushed with commit: " + result + "\n");
+        debug.append("\"" + fileName + "\" File Has been Pushed with commit: ").append(result).append("\n");
+        git.close();
+    }
+    catch (e) {
+        e.printStackTrace();
+
+    }
+}</ScriptContent>
+    <ActionURL xsi:nil="true" xmlns="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+    <OutputContentType xmlns="">Plain Text</OutputContentType>
+    <OutputFileExtension xmlns="">txt</OutputFileExtension>
+    <Order xmlns="">1.0</Order>
+    <Enabled xmlns="">true</Enabled>
+    <SystemBased xmlns="">false</SystemBased>
+    <CreatedBy xmlns="">Administrator</CreatedBy>
+    <CreatedDateTime xmlns="">2018-08-20+05:30</CreatedDateTime>
+    <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+    <LastModifiedDateTime xmlns="">2018-08-20+05:30</LastModifiedDateTime>
+    <EnableFileUploadDialog xmlns="">false</EnableFileUploadDialog>
+    <EnableMappingDialog xmlns="">false</EnableMappingDialog>
+    <EnableMetadataDialog xmlns="">false</EnableMetadataDialog>
+    <ShowAtMappingLevel xmlns="">false</ShowAtMappingLevel>
+    <ShowAtMetadataLevel xmlns="">false</ShowAtMetadataLevel>
+    <Encrypted xmlns="">false</Encrypted>
+    <DefaultWorkflowId xmlns="">0</DefaultWorkflowId>
+    <com:ExecutableProperties xmlns:com="http://www.analytixds.com/amm/xml/cfx/v1/common">
+      <RunOnApplicationStartup xmlns="">false</RunOnApplicationStartup>
+      <RunOnApplicationShutdown xmlns="">false</RunOnApplicationShutdown>
+      <InstallScript xmlns=""/>
+      <UninstallScript xmlns=""/>
+    </com:ExecutableProperties>
+    <com:Components xmlns:com="http://www.analytixds.com/amm/xml/cfx/v1/common">
+      <com:Component>
+        <dial:Dialog Id="43" xmlns:dial="http://www.analytixds.com/amm/xml/cfx/v1/dialogs">
+          <Name xmlns="">Git Hub File uploader</Name>
+          <Properties xmlns="">{"flabelwidth":50,"fheight":400,"fcontrolwidth":50,"fwidth":600}</Properties>
+          <DefaultProfileName xmlns="">Default</DefaultProfileName>
+          <CreatedBy xmlns="">Administrator</CreatedBy>
+          <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+          <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+          <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+          <dial:DialogProfiles>
+            <dial:DialogProfile Id="43">
+              <Name xmlns="">Default</Name>
+              <ProfileScript xmlns=""/>
+              <CreatedBy xmlns="">Administrator</CreatedBy>
+              <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+              <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+              <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+              <dial:DialogTabs>
+                <dial:DialogTab>
+                  <Name xmlns="">DefaultTab</Name>
+                  <CreatedBy xmlns="">Administrator</CreatedBy>
+                  <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                  <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                  <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                  <dial:DialogOptions>
+                    <dial:DialogOption>
+                      <Name xmlns="">vGItHubUrl</Name>
+                      <Properties xmlns="">{"container":false,"tabId":0,"defaultValue":"https://github.com/Hkartheek/Test.git","title":"Git HUB URL","type":"Text Box","catOptionId":173,"mandatory":true,"enabled":true,"controlStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","filesCount":5,"OnSelect":"","OnFocus":"","labelStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","controlwidth":"100%","html":"","buttonUpload":true,"sampleRegExValue":"","image":"images/textbox.jpg","visible":true,"componentObject":"","showTimer":true,"buttonClear":true,"format":"","OnChange":"","maskField":false,"list":"","OnClick":"","catOptionOrder":1,"labelStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"name":"vGItHubUrl","OnBlur":"","multiValued":false,"controlStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"controlHeight":150,"allowDisabling":false}</Properties>
+                      <CreatedBy xmlns="">Administrator</CreatedBy>
+                      <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                      <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                      <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                    </dial:DialogOption>
+                    <dial:DialogOption>
+                      <Name xmlns="">vUserName</Name>
+                      <Properties xmlns="">{"container":false,"tabId":0,"defaultValue":"kartheekh@analytixds.com","title":"User Name","type":"Text Box","catOptionId":174,"mandatory":true,"enabled":true,"controlStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","filesCount":5,"OnSelect":"","OnFocus":"","labelStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","controlwidth":"100%","html":"","buttonUpload":true,"sampleRegExValue":"","image":"images/textbox.jpg","visible":true,"componentObject":"","showTimer":true,"buttonClear":true,"format":"","OnChange":"","maskField":false,"list":"","OnClick":"","catOptionOrder":2,"labelStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"name":"vUserName","OnBlur":"","multiValued":false,"controlStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"controlHeight":150,"allowDisabling":false}</Properties>
+                      <CreatedBy xmlns="">Administrator</CreatedBy>
+                      <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                      <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                      <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                    </dial:DialogOption>
+                    <dial:DialogOption>
+                      <Name xmlns="">vPassword</Name>
+                      <Properties xmlns="">{"container":false,"tabId":0,"defaultValue":"donotuse@321","title":"Password","type":"Text Box","catOptionId":175,"mandatory":true,"enabled":true,"controlStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","filesCount":5,"OnSelect":"","OnFocus":"","labelStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","controlwidth":"100%","html":"","buttonUpload":true,"sampleRegExValue":"","image":"images/textbox.jpg","visible":true,"componentObject":"","showTimer":true,"buttonClear":true,"format":"","OnChange":"","maskField":"true","list":"","OnClick":"","catOptionOrder":3,"labelStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"name":"vPassword","OnBlur":"","multiValued":false,"controlStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"controlHeight":150,"allowDisabling":false}</Properties>
+                      <CreatedBy xmlns="">Administrator</CreatedBy>
+                      <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                      <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                      <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                    </dial:DialogOption>
+                    <dial:DialogOption>
+                      <Name xmlns="">vFolderName</Name>
+                      <Properties xmlns="">{"container":false,"tabId":0,"defaultValue":"Stage","title":"Local Repo Folder Name","type":"Text Box","catOptionId":176,"mandatory":true,"enabled":true,"controlStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","filesCount":5,"OnSelect":"","OnFocus":"","labelStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","controlwidth":"100%","html":"","buttonUpload":true,"sampleRegExValue":"","image":"images/textbox.jpg","visible":true,"componentObject":"","showTimer":true,"buttonClear":true,"format":"","OnChange":"","maskField":false,"list":"","OnClick":"","catOptionOrder":4,"labelStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"name":"vFolderName","OnBlur":"","multiValued":false,"controlStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"controlHeight":150,"allowDisabling":false}</Properties>
+                      <CreatedBy xmlns="">Administrator</CreatedBy>
+                      <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                      <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                      <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                    </dial:DialogOption>
+                    <dial:DialogOption>
+                      <Name xmlns="">vUpload</Name>
+                      <Properties xmlns="">{"container":false,"tabId":0,"defaultValue":"","title":"Upload","type":"Upload","catOptionId":177,"mandatory":false,"enabled":true,"controlStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","filesCount":5,"OnSelect":"","OnFocus":"","labelStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","controlwidth":"100%","html":"","buttonUpload":true,"sampleRegExValue":"","image":"images/uploader.jpg","visible":true,"componentObject":"","showTimer":true,"buttonClear":true,"format":"","OnChange":"","maskField":false,"list":"","OnClick":"","catOptionOrder":5,"labelStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"name":"vUpload","OnBlur":"","multiValued":false,"controlStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"controlHeight":150,"allowDisabling":false}</Properties>
+                      <CreatedBy xmlns="">Administrator</CreatedBy>
+                      <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                      <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                      <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                    </dial:DialogOption>
+                    <dial:DialogOption>
+                      <Name xmlns="">vBranch</Name>
+                      <Properties xmlns="">{"container":false,"tabId":0,"defaultValue":"master","title":"Branch","type":"Text Box","catOptionId":178,"mandatory":false,"enabled":true,"controlStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","filesCount":5,"OnSelect":"","OnFocus":"","labelStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","controlwidth":"100%","html":"","buttonUpload":true,"sampleRegExValue":"","image":"images/textbox.jpg","visible":true,"componentObject":"","showTimer":true,"buttonClear":true,"format":"","OnChange":"","maskField":false,"list":"","OnClick":"","catOptionOrder":6,"labelStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"name":"vBranch","OnBlur":"","multiValued":false,"controlStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"controlHeight":150,"allowDisabling":false}</Properties>
+                      <CreatedBy xmlns="">Administrator</CreatedBy>
+                      <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                      <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                      <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                    </dial:DialogOption>
+                    <dial:DialogOption>
+                      <Name xmlns="">vRemote</Name>
+                      <Properties xmlns="">{"container":false,"tabId":0,"defaultValue":"origin","title":"Remote","type":"Text Box","catOptionId":0,"mandatory":false,"enabled":true,"controlStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","filesCount":5,"OnSelect":"","OnFocus":"","labelStyle":"font-family:Century Gothic; font-size: 12px;font-weight:regular;text-decoration:none;padding-top:0px;padding-left:0px;padding-right:0px;padding-bottom:0px;text-align:left;vertical-align:top;color:#000000;","controlwidth":"100%","html":"","buttonUpload":true,"sampleRegExValue":"","image":"images/textbox.jpg","visible":true,"componentObject":"","showTimer":true,"buttonClear":true,"format":"","OnChange":"","maskField":false,"list":"","OnClick":"","catOptionOrder":7,"labelStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"name":"vRemote","OnBlur":"","multiValued":false,"controlStyleJSON":{"padding-top":"0","color":"#000000","font-weight":"regular","text-decoration":"none","padding-left":"0","vertical-align":"top","font-size":"12px","padding-bottom":"0","font-family":"Century Gothic","padding-right":"0","text-align":"left"},"controlHeight":150,"allowDisabling":false}</Properties>
+                      <CreatedBy xmlns="">Administrator</CreatedBy>
+                      <LastModifiedBy xmlns="">Administrator</LastModifiedBy>
+                      <CreatedDate xmlns="">2018-08-20+05:30</CreatedDate>
+                      <LastModifiedDate xmlns="">2018-08-20+05:30</LastModifiedDate>
+                    </dial:DialogOption>
+                  </dial:DialogOptions>
+                </dial:DialogTab>
+              </dial:DialogTabs>
+            </dial:DialogProfile>
+          </dial:DialogProfiles>
+        </dial:Dialog>
+      </com:Component>
+    </com:Components>
+    <wor:Workflows xmlns:wor="http://www.analytixds.com/amm/xml/cfx/v1/workflows"/>
+    <com:ScheduledJobs xmlns:com="http://www.analytixds.com/amm/xml/cfx/v1/common"/>
+  </Cat>
+</Cats>
