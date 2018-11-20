@@ -1,0 +1,220 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.erwin.data.asset;
+
+import com.ads.api.beans.sm.SMEnvironment;
+import com.ads.api.beans.sm.SMSystem;
+import com.ads.api.util.SystemManagerUtil;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+/**
+ *
+ * @author Shiva
+ */
+public class MMHelper {
+
+    public static List<String> createEnvironmentsUnderSpecifiedSystem(SystemManagerUtil systemManagerUtil, String dataAssetJsonResponse) {
+        int sysId = 0;
+        List<String> systemIdList = new ArrayList();
+        try {
+            List<Map<String, String>> environmentsList = getDataAssetDetailsFromJson(dataAssetJsonResponse);
+            int systemId = -1;
+            if (environmentsList.size() != 0) {
+                systemId = createSystem(systemManagerUtil);
+            }
+            for (Map<String, String> eachEnvironment : environmentsList) {
+                try {
+                    if (!eachEnvironment.isEmpty()) {
+                        SMEnvironment sMEnvironment = null;
+                        String dataAssetId = eachEnvironment.get("ID");
+                        String environmentName = eachEnvironment.get("NAME");
+                        String username = eachEnvironment.get("USERNAME");
+                        String password = eachEnvironment.get("PASSWORD");
+                        String dbConnectionString = eachEnvironment.get("CONNECTIONSTRING");
+                        String dbName = eachEnvironment.get("DBMSNAME");
+                        String assetType = eachEnvironment.get("ASSETTYPE");
+                        String dbType = eachEnvironment.get("DBTYPE");
+                        String ip = eachEnvironment.get("IP");
+                        String port = eachEnvironment.get("PORT");
+                        String environmentDescription = eachEnvironment.get("DESCRIPTION");
+                        String driverClass = "";
+                        int envId = systemManagerUtil.getEnvironmentId(systemId, environmentName);
+                        String status = "";
+                        if (envId > 0) {
+                            //update Operation
+                            status = "update";
+                            sMEnvironment = systemManagerUtil.getEnvironment(envId);
+                        } else {
+                            //create new
+                            status = "addNew";
+                            sMEnvironment = new SMEnvironment();
+                        }
+                        sMEnvironment.setSystemEnvironmentName(environmentName);
+                        sMEnvironment.setSystemEnvironmentType(environmentName);
+                        if ((dbType != null && dbType.contains("JSON")) || assetType.toUpperCase().contains("JSON")) {
+                            sMEnvironment.setDatabaseType("JSON");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.JSON);
+                        } else if ((dbType != null && dbType.contains("CSV")) || assetType.toUpperCase().contains("CSV")) {
+                            sMEnvironment.setDatabaseType("CSV");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.DSV);
+                        } else if ((dbType != null && dbType.contains("XSD")) || assetType.toUpperCase().contains("XSD")) {
+                            sMEnvironment.setDatabaseType("XSD");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.XSD);
+                        } else if ((dbType != null && dbType.contains("XML")) || assetType.toUpperCase().contains("XML")) {
+                            sMEnvironment.setDatabaseType("XML");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.XSD);
+                        } else if ("sqlserver".equalsIgnoreCase(dbType)) {
+                            sMEnvironment.setDatabaseType("SqlServer");
+//                            driverClass = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+                            driverClass = DataAssetSync.driverClassMap.get("SqlServer");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.SqlServer);
+                        } else if ("oracle".equalsIgnoreCase(dbType)) {
+                            sMEnvironment.setDatabaseType("Oracle");
+//                            driverClass = "oracle.jdbc.driver.OracleDriver";
+                            driverClass = DataAssetSync.driverClassMap.get("Oracle");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.Oracle);
+                        } else if ("MySql".equalsIgnoreCase(dbType)) {
+                            sMEnvironment.setDatabaseType("MySQL");
+                            driverClass = DataAssetSync.driverClassMap.get("MySQL");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.MySQL);
+                        } else if ("Db2".equalsIgnoreCase(dbType)) {
+                            sMEnvironment.setDatabaseType("Db2");
+                            driverClass = DataAssetSync.driverClassMap.get("Db2");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.DB2);
+                        } else if ("MySQL".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("MySQL");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.MySQL);
+                        } else if ("IBM Netezza".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("IBM Netezza");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.Netezza);
+                        } else if ("Greenplum".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Greenplum");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.GreenPlum);
+                        } else if ("Pervasive".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Pervasive");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.Pervasive);
+                        } else if ("Sybase".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Sybase");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.Sybase);
+                        } else if ("Teradata".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Teradata");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.Teradata);
+                        } else if ("Amazon Redshift".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Amazon Redshift");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.AmazonRedshift);
+                        } else if ("HP Vertica".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("HP Vertica");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.Vertica);
+                        } else if ("Big Data - Cloudera".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Big Data - Cloudera");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.BigDataCloudera);
+                        } else if ("Big Data - Hortonworks".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Big Data - Hortonworks");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.BigDataHortonWorks);
+                        } else if ("Big Data - MapR".equalsIgnoreCase(dbType)) {
+                            driverClass = DataAssetSync.driverClassMap.get("Big Data - MapR");
+                            sMEnvironment.setEnvironmentType(SMEnvironment.DatabaseType.BigDataMapR);
+                        }
+
+                        sMEnvironment.setSystemId(systemId);
+                        sMEnvironment.setIntendedUseDescription(environmentDescription);
+                        sMEnvironment.setEnvironmentNotes(dataAssetId);
+                        sMEnvironment.setNoOfPartitions(1);
+                        sMEnvironment.setMaximumNoOfConnectionsPerPartition(5);
+                        sMEnvironment.setMinimumNoOfConnectionsPerPartition(3);
+                        sMEnvironment.setDatabaseUserName(username);
+                        sMEnvironment.setDatabasePassword(password);
+                        sMEnvironment.setDatabaseURL(dbConnectionString);
+                        sMEnvironment.setDatabaseName(dbName);
+                        sMEnvironment.setDatabaseIPAddress(ip);
+                        sMEnvironment.setDatabasePort(port);
+                        sMEnvironment.setDatabaseDriver(driverClass);
+                        String message = "";
+                        if (status.equalsIgnoreCase("update")) {
+                            message = systemManagerUtil.updateEnvironment(sMEnvironment).getStatusMessage();
+                        } else if (status.equalsIgnoreCase("addNew")) {
+                            message = systemManagerUtil.createEnvironment(sMEnvironment).getStatusMessage();
+                        }
+                        DataAssetSync.errorLogs.append(environmentName + "," + message + "\n");
+                    }
+                } catch (Exception e) {
+                    DataAssetSync.restEndPointException = -1;
+                    DataAssetSync.errorLogs.append(e.getMessage() + "\n");
+                    continue;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return systemIdList;
+    }
+
+    public static int createSystem(SystemManagerUtil systemManagerUtil) {
+        int sysId = -1;
+        try {
+            if (systemManagerUtil.getSystemId(DataAssetSync.systemName) > 0) {
+                sysId = systemManagerUtil.getSystemId(DataAssetSync.systemName);
+            } else {
+                SMSystem smSystem = new SMSystem();
+                smSystem.setSystemName(DataAssetSync.systemName);
+                String status = systemManagerUtil.createSystem(smSystem).getStatusMessage();
+                System.out.println("Status : " + status);
+                sysId = systemManagerUtil.getSystemId(DataAssetSync.systemName);
+//            systemIdList.add(sysId + "#" + databaseDesigns);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sysId;
+    }
+
+    public static List<Map<String, String>> getDataAssetDetailsFromJson(String dataAssetJsonResponse) {
+
+        List<Map<String, String>> envMapList = new ArrayList();
+        Map<String, String> dataAssetInfoMap = null;
+        try {
+            JSONObject dataAssetJson = new JSONObject(dataAssetJsonResponse);
+            JSONObject dataAsset = null;
+            JSONArray dataModelsArr = dataAssetJson.getJSONArray("content") == null ? null : dataAssetJson.getJSONArray("content");
+            if (dataModelsArr != null) {
+                for (int i = 0; i < dataModelsArr.length(); i++) {
+                    dataAsset = dataModelsArr.getJSONObject(i);
+                    if (dataAsset != null) {
+                        dataAssetInfoMap = new HashMap();
+                        if ("true".equalsIgnoreCase(dataAsset.has("Flagged for Metadata Harvesting") ? dataAsset.getString("Flagged for Metadata Harvesting") : "")) {
+                            dataAssetInfoMap.put("ID", dataAsset.has("_id") ? dataAsset.getString("_id") : "");
+                            dataAssetInfoMap.put("NAME", dataAsset.has("_name") ? dataAsset.getString("_name") : "");
+                            dataAssetInfoMap.put("DESCRIPTION", dataAsset.has("_description") ? dataAsset.getString("_description") : "");
+                            dataAssetInfoMap.put("CREATEDAT", dataAsset.has("_createdAt") ? dataAsset.getString("_createdAt") : "");
+                            dataAssetInfoMap.put("ASSETTYPE", dataAsset.has("Asset Type") ? dataAsset.getString("Asset Type") : "");
+                            dataAssetInfoMap.put("CREATEDBY", dataAsset.has("_createdBy") ? dataAsset.getString("_createdBy") : "");
+                            dataAssetInfoMap.put("UPDATEDAT", dataAsset.has("_updatedAt") ? dataAsset.getString("_updatedAt") : "");
+                            dataAssetInfoMap.put("UPDATEDBY", dataAsset.has("_updatedBy") ? dataAsset.getString("_updatedBy") : "");
+                            dataAssetInfoMap.put("VERSION", dataAsset.has("_version") ? dataAsset.getString("_version") : "");
+                            dataAssetInfoMap.put("CONNECTIONSTRING", dataAsset.has("Database Connection String") ? dataAsset.getString("Database Connection String") : "");
+                            dataAssetInfoMap.put("USERNAME", dataAsset.has("Username") ? dataAsset.getString("Username") : " ");
+                            dataAssetInfoMap.put("PASSWORD", dataAsset.has("Password") ? dataAsset.getString("Password") : " ");
+                            dataAssetInfoMap.put("IP", dataAsset.has("IP / Host") ? dataAsset.getString("IP / Host") : " ");
+                            dataAssetInfoMap.put("PORT", dataAsset.has("Port") ? dataAsset.getString("Port") : " ");
+                            dataAssetInfoMap.put("DBMSNAME", dataAsset.has("DMBS Name/DSN") ? dataAsset.getString("DMBS Name/DSN") : " ");
+                            dataAssetInfoMap.put("DBTYPE", dataAsset.has("DB Type") ? dataAsset.getString("DB Type") : " ");
+                            envMapList.add(dataAssetInfoMap);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return envMapList;
+    }
+
+}
