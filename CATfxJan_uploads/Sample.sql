@@ -1,1 +1,0 @@
-Select epid,empname from Employee;
