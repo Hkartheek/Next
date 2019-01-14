@@ -1,1 +1,1 @@
-Select epid,empname from Employe;
+Select epid,empname from Employee;
